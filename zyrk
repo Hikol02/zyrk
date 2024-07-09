@@ -1,0 +1,110 @@
+from random import randint
+from time import *
+import pygame
+pygame.init()
+ms = pygame.display.set_mode((500, 700))
+back = (160,217,129)
+yellow = (255,255,0)
+red = (255,0,0)
+green = (0,255,0)
+ms.fill(back)
+clock = pygame.time.Clock()
+class Area():
+    def __init__(self,x,y,width,height,color):
+        self.rect = pygame.Rect(x,y,width,height)
+        self.color = color
+    def color1(self,new_color):
+        self.color = new_color
+    def fill(self):
+        pygame.draw.rect(ms,self.color,self.rect)
+    def collide(self,x,y):
+        return self.rect.collidepoint(x,y)
+class Label(Area):
+    def set_text(self,text,size,text_color = (0,0,0)):
+        self.text = text
+        font1 = pygame.font.Font(None, size)
+        self.image = font1.render(text, True, text_color)
+    def draw(self, shift_x=0, shift_y=0):
+        self.fill()
+        ms.blit(self.image, (self.rect.x + shift_x, self.rect.y + shift_y))
+
+
+
+cats = []
+num_cats = 5
+x = 70
+y = 150
+for i in range(num_cats):
+    card = Label(x,y,70,100,(255,255,0))
+    card.set_text('CLICK',25)
+    cats.append(card)
+    x = x + 100
+
+score = Label(0,0,70,100,back)
+score.set_text('Счёт:', 100)
+score.draw(0,0)
+
+scorecount = Label(160,0,70,100,back)
+scorecount.set_text('0', 100)
+scorecount.draw(0,0)
+
+timer = Label(250,0,70,100,back)
+timer.set_text('Время:', 100)
+timer.draw(0,0)
+
+timecount = Label(440,0,70,100,back)
+timecount.set_text('0', 100)
+timecount.draw(0,0)
+
+points = 0
+
+
+time_current = time()
+timestart = time() # НЕ  БЫЛО  СКОБОК !!
+run = True
+wait = 0
+while run:
+    if wait == 0:
+        wait = 40
+        click = randint(1, num_cats)
+        for i in range(num_cats):
+            cats[i].color1(yellow)
+            if (i + 1) == click:
+                cats[i].draw(10, 40)
+            else:
+                cats[i].fill()
+    else:
+        wait -= 1
+    for event in pygame.event.get():
+        if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
+            x,y = event.pos
+            for i in range(num_cats):
+                if cats[i].collide(x,y):
+                    if (i + 1) == click:
+                       cats[i].color1(green)
+                       points += 1
+                       scorecount.set_text(str(points),100)
+                       scorecount.draw(0,0)
+                    else:
+                       cats[i].color1(red) 
+                       pass
+                cats[i].fill()
+    new_time = time()
+    
+    if int(new_time) - int(time_current) == 1:
+        timecount.set_text(str(int(new_time - timestart)), 100)
+        timecount.draw(0,0)
+        time_current = new_time
+    if int(new_time - timestart) >= 30:
+        lose = Label(0,0,500,700,(255,0,0))
+        lose.set_text('Время вышло!', 100,yellow)
+        lose.draw(50,50)
+        run = False
+
+    if points >= 5:
+        win = Label(0,0,500,700,(0,255,0))
+        win.set_text('Ты победил', 100,yellow)
+        win.draw(50,50)
+        run = False
+    pygame.display.update()
+    clock.tick(40)
